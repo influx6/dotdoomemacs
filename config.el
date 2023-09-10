@@ -42,6 +42,8 @@
 ;; change `org-directory'. It must be set before org loads!
 (setq org-directory "~/org/")
 
+;; Set the default projectile search path
+(setq projectile-project-search-path '("~/Lab"))
 
 ;; Whenever you reconfigure a package, make sure to wrap your config in an
 ;; `after!' block, otherwise Doom's defaults may override your settings. E.g.
@@ -74,3 +76,87 @@
 ;;
 ;; You can also try 'gd' (or 'C-c c d') to jump to their definition and see how
 ;; they are implemented.
+
+(defun add-or-switch-project-dwim (dir)
+  "Let elisp do a few chores & set my hands free!"
+  (interactive (list (read-directory-name "Add to known projects: ")))
+  (projectile-add-known-project dir)
+  (find-file dir)
+  (treemacs-add-and-display-current-project))
+
+;; Key bindings configuration
+;; (global-set-key (kbd "C-c q") 'shell)
+;; (global-set-key (kbd "<SPC> 1") '(other-window 1))
+;; (global-set-key (kbd "SPC-2") '(other-window 2))
+
+;; (map! "SPC m 1" '#(other-window 1))
+;; (map! "SPC m 2" '#other-window 2)
+;;
+(defun +private/treemacs-back-and-forth ()
+  (interactive)
+  (if (treemacs-is-treemacs-window-selected?)
+      (aw-flip-window)
+    (treemacs-select-window)))
+
+(defun +previous-window-away-by-1 ()
+  (interactive)
+  (other-window -1))
+
+(defun +next-window-away-by-1 ()
+  (interactive)
+  (other-window 1))
+
+
+(defun +split-window-vertical ()
+  (interactive)
+  (evil-window-vsplit))
+
+(defun +split-window-horizontal ()
+  (interactive)
+  (evil-window-split))
+
+(defun named-shell ()
+  "creates a shell with a given name"
+  (interactive);; "Prompt\n shell name:"
+  (let ((shell-name (read-string "shell name: ", nill)))
+    (shell (concat "*" shell-name "*"))))
+
+(defun in-place-shell ()
+  (interactive)
+
+  (let (
+        (currentbuf (get-buffer-window (current-buffer)))
+        (newbuf     (generate-new-buffer-name "*shell*"))
+        )
+
+    (generate-new-buffer newbuf)
+    (set-window-dedicated-p currentbuf nil)
+    (set-window-buffer currentbuf newbuf)
+    (shell newbuf)
+    )
+  )
+
+
+(map! :leader
+
+      (:prefix-map ("z" . "window shorthand keys")
+
+                   (:prefix-map ("w" . "shell related shorthand")
+                        :desc "Switch to next window" "w" #'aw-flip-window
+                        :desc "Switch to treemacs" "t" #'+private/treemacs-back-and-forth
+                        :desc "vsplit window" "v" #'+split-window-vertical
+                        :desc "hsplit window" "h" #'+split-window-horizontal
+                        :desc "balance/resize windows" "r" #'balance-windows
+                        :desc "next window +1" "1" #'+next-window-away-by-1
+                        :desc "previous window -1" "2" #'+previous-window-away-by-1
+                    )
+
+
+                   (:prefix-map ("s" . "shell related shorthand")
+                        :desc "new shell in-place" "s" #'in-place-shell
+                        :desc "named shell" "n" #'named-shell
+                    )
+
+        )
+
+)
