@@ -92,34 +92,43 @@
 ;; (map! "SPC m 1" '#(other-window 1))
 ;; (map! "SPC m 2" '#other-window 2)
 ;;
-(defun +private/treemacs-back-and-forth ()
+(defun private/treemacs-back-and-forth ()
   (interactive)
   (if (treemacs-is-treemacs-window-selected?)
       (aw-flip-window)
     (treemacs-select-window)))
 
-(defun +previous-window-away-by-1 ()
+(defun move-window-away-by-n (n)
+  (other-window n))
+
+(defun previous-window-away-by-1 ()
   (interactive)
-  (other-window -1))
+  (move-window-away-by-n -1))
 
-(defun +next-window-away-by-1 ()
+(defun next-window-away-by-1 ()
   (interactive)
-  (other-window 1))
+  (move-window-away-by-n 1))
 
-
-(defun +split-window-vertical ()
+(defun split-window-vertical ()
   (interactive)
   (evil-window-vsplit))
 
-(defun +split-window-horizontal ()
+(defun split-window-horizontal ()
   (interactive)
   (evil-window-split))
 
 (defun named-shell ()
   "creates a shell with a given name"
   (interactive);; "Prompt\n shell name:"
-  (let ((shell-name (read-string "shell name: ", nill)))
+  (let ((shell-name (read-string "shell name: ", nil)))
     (shell (concat "*" shell-name "*"))))
+
+(defun to-window-by ()
+  "moves to destination window based on cont"
+  (interactive)
+  (setq move-number (string-to-number (read-string "move by: " nil "1")))
+    (message "Going to next window by: %s" move-number)
+    (move-window-away-by-n move-number))
 
 (defun in-place-shell ()
   (interactive)
@@ -139,20 +148,21 @@
 
 (map! :leader
 
-      (:prefix-map ("z" . "window shorthand keys")
+      (:prefix-map ("z" . "alexander keyboard shorthands")
 
-                   (:prefix-map ("w" . "shell related shorthand")
-                        :desc "Switch to next window" "w" #'aw-flip-window
-                        :desc "Switch to treemacs" "t" #'+private/treemacs-back-and-forth
-                        :desc "vsplit window" "v" #'+split-window-vertical
-                        :desc "hsplit window" "h" #'+split-window-horizontal
+                   (:prefix-map ("w" . "window shorthand")
+                        :desc "Switch to treemacs" "t" #'private/treemacs-back-and-forth
+                        :desc "vsplit window" "v" #'split-window-vertical
+                        :desc "hsplit window" "h" #'split-window-horizontal
                         :desc "balance/resize windows" "r" #'balance-windows
-                        :desc "next window +1" "1" #'+next-window-away-by-1
-                        :desc "previous window -1" "2" #'+previous-window-away-by-1
+                        :desc "next window +1" "1" #'next-window-away-by-1
+                        :desc "previous window -1" "2" #'previous-window-away-by-1
+                        :desc "next window" "w" #'to-window-by
                     )
 
 
-                   (:prefix-map ("s" . "shell related shorthand")
+                   (:prefix-map ("s" . "shell shorthand")
+                        :desc "clears buffer screen" "c" #'comint-clear-buffer
                         :desc "new shell in-place" "s" #'in-place-shell
                         :desc "named shell" "n" #'named-shell
                     )
